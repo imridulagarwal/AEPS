@@ -1,18 +1,32 @@
 from flask import Flask, render_template_string, send_file
 import pandas as pd
-import requests
 from bs4 import BeautifulSoup
-from io import BytesIO
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from io import BytesIO, StringIO
 import matplotlib.pyplot as plt
+import time
 
 app = Flask(__name__)
 aeps_df = pd.DataFrame()
 
 def scrape_aeps_data():
-    url = "https://www.npci.org.in/what-we-do/aeps/product-statistics/2024-25"
-    res = requests.get(url)
-    soup = BeautifulSoup(res.text, "html.parser")
-    tables = pd.read_html(res.text)
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+
+    driver = webdriver.Chrome(options=chrome_options)
+    driver.get("https://www.npci.org.in/what-we-do/aeps/product-statistics/2024-25")
+    time.sleep(5)
+
+    page_source = driver.page_source
+    driver.quit()
+
+    soup = BeautifulSoup(page_source, "html.parser")
+    tables = pd.read_html(StringIO(page_source))
+
     for table in tables:
         if "Approved Off-us Transaction" in table.columns[1]:
             return table
@@ -65,7 +79,6 @@ def download():
     buffer.seek(0)
     return send_file(buffer, download_name="AEPS_2024_25_Data.xlsx", as_attachment=True)
 
-# Production entry point
 if __name__ == "__main__":
     from waitress import serve
     serve(app, host="0.0.0.0", port=8080)

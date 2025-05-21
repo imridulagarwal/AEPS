@@ -6,3 +6,4 @@ matplotlib
 lxml
 waitress
 gunicorn
+selenium

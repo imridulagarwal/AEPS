@@ -1,7 +1,5 @@
 services:
   - type: web
-    name: aeps-dashboard
-    runtime: python
-    buildCommand: ""
-    startCommand: gunicorn app:app
+    name: aeps-dashboard-docker
+    runtime: docker
     plan: free
