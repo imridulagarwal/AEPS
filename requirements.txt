@@ -5,3 +5,4 @@ beautifulsoup4
 matplotlib
 lxml
 waitress
+gunicorn
